@@ -1,0 +1,41 @@
+{
+  "schema_version": "AXYOM_PUBLIC_CAPABILITIES_V1",
+  "project": "AXYOM",
+  "builder": "Michel Durán",
+  "focus": [
+    "AI-agent evaluation",
+    "Python automation",
+    "PowerShell engineering",
+    "Windows UI Automation",
+    "Computer-use testing",
+    "Local/offline AI",
+    "Context-efficient agent workflows",
+    "Repository auditing",
+    "SHA-256 evidence and manifests",
+    "Fail-closed validation",
+    "Reproducible technical reporting"
+  ],
+  "public_case_studies": {
+    "research_lab": {
+      "repositories_audited": 18,
+      "material_role_corrections": 8,
+      "taxonomy_refinements": 8,
+      "confirmed_classifications": 2
+    },
+    "context_governor_r1": {
+      "python_compile": "PASS",
+      "micro_estimated_tokens": 1962,
+      "micro_budget": 2000,
+      "normal_estimated_tokens": 2586,
+      "normal_budget": 12000,
+      "provider_billing_measurement": false
+    }
+  },
+  "not_claimed": [
+    "Absolute security",
+    "Production certification",
+    "Human-level general autonomy",
+    "Perfect benchmark performance",
+    "Exact provider token billing from local estimates"
+  ]
+}
