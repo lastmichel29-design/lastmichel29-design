@@ -18,6 +18,27 @@ claim → execution → observation → verification → evidence
 
 A successful execution is useful, but it is not automatically proof.
 
+## Try AXYOM
+
+A small **public interactive demo** is now included in this repository under [`docs/`](docs/).
+
+It is intentionally limited and safe to publish:
+
+- browser-only
+- deterministic
+- no LLM
+- no API key
+- no private AXYOM runtime
+- no network calls from the demo
+- refuses to invent answers outside its public corpus
+
+Source:
+
+- [Interactive demo](docs/index.html)
+- [Public demo knowledge](docs/public_agent_knowledge.json)
+
+The demo is prepared for **GitHub Pages**. Once Pages is enabled from the `/docs` folder on `main`, visitors can try it directly in their browser.
+
 ## Public showcase
 
 A sanitized public showcase is available here:
@@ -146,6 +167,14 @@ I prefer a system that can say:
 > **I do not have enough evidence.**
 
 rather than manufacture certainty.
+
+## Legal / IP
+
+Copyright © 2026 Michel Durán. All rights reserved.
+
+Public availability of this profile and showcase does not constitute an open-source license for AXYOM's private implementation. Third-party names and trademarks belong to their respective owners; no affiliation or endorsement is implied.
+
+See [NOTICE.md](NOTICE.md) for the public legal notice.
 
 ---
 
