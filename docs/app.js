@@ -253,6 +253,167 @@ async function onVectors() {
   }
 }
 
+/* ------------------------------------------------------------------ */
+/* Context Governor v3 — deterministic, local, no model execution      */
+/* ------------------------------------------------------------------ */
+
+const GOVERNOR_CONFIG =
+  (knowledge && knowledge.context_governor_demo) || null;
+const GOVERNOR_BUDGETS = (GOVERNOR_CONFIG && GOVERNOR_CONFIG.budget_classes) || null;
+const GOVERNOR_BASIS = (GOVERNOR_CONFIG && GOVERNOR_CONFIG.estimate_basis) || "LOCAL_ESTIMATE_ONLY";
+const GOVERNOR_FORMULA = (GOVERNOR_CONFIG && GOVERNOR_CONFIG.estimate_formula) || "ceil(character_count / 4)";
+const GOVERNOR_CHAR_BASIS = (GOVERNOR_CONFIG && GOVERNOR_CONFIG.character_basis) || "UNICODE_CODE_POINTS";
+
+function countCharacters(text) {
+  return Array.from(text).length;
+}
+
+function estimateTokens(characters) {
+  return Math.ceil(characters / 4);
+}
+
+function evaluateGovernor(text, budgetClass) {
+  if (!GOVERNOR_BUDGETS) return { error: "KNOWLEDGE_UNAVAILABLE" };
+  const budget = GOVERNOR_BUDGETS[budgetClass];
+  if (typeof budget !== "number" || !Number.isFinite(budget) || budget <= 0) {
+    return { error: "UNKNOWN_BUDGET_CLASS" };
+  }
+  const characters = countCharacters(text);
+  const estimatedTokens = estimateTokens(characters);
+  const within = estimatedTokens <= budget;
+  return {
+    characters: characters,
+    estimatedTokens: estimatedTokens,
+    budgetClass: budgetClass,
+    budgetLimit: budget,
+    utilizationPercent: Math.round((estimatedTokens / budget) * 10000) / 100,
+    decision: within ? "WITHIN_BUDGET" : "OVER_BUDGET",
+    remainingEstimatedTokens: within ? budget - estimatedTokens : 0,
+    estimatedCharacterCapacity: budget * 4
+  };
+}
+
+function formatGovernorResult(result) {
+  if (result.error) return "ERROR=" + result.error;
+  return [
+    "ESTIMATE_BASIS=" + GOVERNOR_BASIS,
+    "FORMULA=" + GOVERNOR_FORMULA,
+    "CHARACTER_BASIS=" + GOVERNOR_CHAR_BASIS,
+    "CHARACTERS=" + result.characters,
+    "ESTIMATED_TOKENS=" + result.estimatedTokens,
+    "BUDGET_CLASS=" + result.budgetClass,
+    "BUDGET_LIMIT=" + result.budgetLimit,
+    "UTILIZATION_PERCENT=" + result.utilizationPercent.toFixed(2),
+    "DECISION=" + result.decision,
+    "REMAINING_ESTIMATED_TOKENS=" + result.remainingEstimatedTokens,
+    "ESTIMATED_CHARACTER_CAPACITY=" + result.estimatedCharacterCapacity
+  ].join("\n");
+}
+
+function runGovernorTests() {
+  const results = [];
+  const add = (id, pass, detail) => results.push({ id: id, pass: Boolean(pass), detail: detail || "" });
+
+  if (!GOVERNOR_BUDGETS) {
+    add("GOVERNOR_BUDGETS_AVAILABLE", false, "knowledge source unavailable");
+    return { results: results, allPass: false };
+  }
+
+  const cases = [
+    { id: "EMPTY_TEXT_MICRO", chars: 0, budgetClass: "MICRO", characters: 0, tokens: 0, decision: "WITHIN_BUDGET" },
+    { id: "8000_ASCII_CHARS_MICRO", chars: 8000, budgetClass: "MICRO", characters: 8000, tokens: 2000, decision: "WITHIN_BUDGET" },
+    { id: "8001_ASCII_CHARS_MICRO", chars: 8001, budgetClass: "MICRO", characters: 8001, tokens: 2001, decision: "OVER_BUDGET" },
+    { id: "24000_ASCII_CHARS_SMALL", chars: 24000, budgetClass: "SMALL", characters: 24000, tokens: 6000, decision: "WITHIN_BUDGET" },
+    { id: "24001_ASCII_CHARS_SMALL", chars: 24001, budgetClass: "SMALL", characters: 24001, tokens: 6001, decision: "OVER_BUDGET" },
+    { id: "48000_ASCII_CHARS_NORMAL", chars: 48000, budgetClass: "NORMAL", characters: 48000, tokens: 12000, decision: "WITHIN_BUDGET" },
+    { id: "120000_ASCII_CHARS_DEEP", chars: 120000, budgetClass: "DEEP", characters: 120000, tokens: 30000, decision: "WITHIN_BUDGET" },
+    { id: "120001_ASCII_CHARS_DEEP", chars: 120001, budgetClass: "DEEP", characters: 120001, tokens: 30001, decision: "OVER_BUDGET" },
+    { id: "240000_ASCII_CHARS_RESEARCH", chars: 240000, budgetClass: "RESEARCH", characters: 240000, tokens: 60000, decision: "WITHIN_BUDGET" },
+    { id: "240001_ASCII_CHARS_RESEARCH", chars: 240001, budgetClass: "RESEARCH", characters: 240001, tokens: 60001, decision: "OVER_BUDGET" }
+  ];
+
+  for (const testCase of cases) {
+    let pass = false;
+    let detail = "";
+    try {
+      const r = evaluateGovernor("a".repeat(testCase.chars), testCase.budgetClass);
+      const budgetLimit = GOVERNOR_BUDGETS[testCase.budgetClass];
+      const expectedRemaining = testCase.decision === "OVER_BUDGET"
+        ? 0
+        : budgetLimit - testCase.tokens;
+      pass = !r.error &&
+        r.characters === testCase.characters &&
+        r.estimatedTokens === testCase.tokens &&
+        r.decision === testCase.decision &&
+        r.remainingEstimatedTokens === expectedRemaining &&
+        r.estimatedCharacterCapacity === budgetLimit * 4;
+      detail = "characters=" + r.characters + " tokens=" + r.estimatedTokens +
+        " decision=" + r.decision + " remaining=" + r.remainingEstimatedTokens;
+    } catch (e) {
+      detail = String(e);
+    }
+    add(testCase.id, pass, detail);
+  }
+
+  try {
+    const r = evaluateGovernor("\u00f1\u00e9\u4e2d\ud83c\udf89", "MICRO");
+    add("UNICODE_INPUT",
+      !r.error && r.characters === 4 && r.estimatedTokens === 1 && r.decision === "WITHIN_BUDGET",
+      "characters=" + r.characters + " tokens=" + r.estimatedTokens + " decision=" + r.decision);
+  } catch (e) {
+    add("UNICODE_INPUT", false, String(e));
+  }
+
+  try {
+    const cs = knowledge.case_studies.context_governor_r1;
+    add("BUDGET_MICRO_MATCHES_CASE_STUDY", GOVERNOR_BUDGETS.MICRO === cs.micro_budget,
+      "demo=" + GOVERNOR_BUDGETS.MICRO + " case_study=" + cs.micro_budget);
+    add("BUDGET_NORMAL_MATCHES_CASE_STUDY", GOVERNOR_BUDGETS.NORMAL === cs.normal_budget,
+      "demo=" + GOVERNOR_BUDGETS.NORMAL + " case_study=" + cs.normal_budget);
+  } catch (e) {
+    add("BUDGET_CASE_STUDY_CONSISTENCY", false, String(e));
+  }
+
+  const order = ["MICRO", "SMALL", "NORMAL", "DEEP", "RESEARCH"];
+  add("ALL_BUDGET_CLASSES_PRESENT",
+    order.every((k) => typeof GOVERNOR_BUDGETS[k] === "number"),
+    order.map((k) => k + "=" + GOVERNOR_BUDGETS[k]).join(" "));
+  add("BUDGET_CLASSES_INCREASING",
+    order.every((k, i) => i === 0 || GOVERNOR_BUDGETS[k] > GOVERNOR_BUDGETS[order[i - 1]]));
+
+  const allPass = results.length > 0 && results.every((r) => r.pass);
+  return { results: results, allPass: allPass };
+}
+
+function renderGovernorTests() {
+  const run = runGovernorTests();
+  const lines = run.results.map((r) => {
+    return r.id + "=" + (r.pass ? "PASS" : "FAIL") + (r.detail ? "\n  " + r.detail : "");
+  });
+  lines.push("GOVERNOR_TESTS_GLOBAL_PASS=" + (run.allPass ? "TRUE" : "FALSE"));
+  writeOut("govTestsOut", lines.join("\n"));
+}
+
+function selectedGovernorClass() {
+  const selected = document.querySelector('input[name="govclass"]:checked');
+  return selected ? selected.value : null;
+}
+
+function onGovernEvaluate() {
+  const textArea = document.getElementById("govText");
+  if (!textArea) return;
+  const result = evaluateGovernor(textArea.value, selectedGovernorClass());
+  writeOut("govOut", formatGovernorResult(result));
+}
+
+function onGovernClear() {
+  const textArea = document.getElementById("govText");
+  if (!textArea) return;
+  textArea.value = "";
+  writeOut("govOut", "");
+  textArea.focus();
+}
+
 const hashBtn = document.getElementById("hashBtn");
 const compareBtn = document.getElementById("compareBtn");
 const vectorsBtn = document.getElementById("vectorsBtn");
@@ -269,8 +430,21 @@ if (compareClearBtn) {
   });
 }
 
+const govBtn = document.getElementById("govBtn");
+const govClearBtn = document.getElementById("govClearBtn");
+const govTestsBtn = document.getElementById("govTestsBtn");
+const govText = document.getElementById("govText");
+if (govBtn) govBtn.addEventListener("click", onGovernEvaluate);
+if (govClearBtn) govClearBtn.addEventListener("click", onGovernClear);
+if (govTestsBtn) govTestsBtn.addEventListener("click", renderGovernorTests);
+if (govText) govText.addEventListener("input", onGovernEvaluate);
+document.querySelectorAll('input[name="govclass"]').forEach((radio) => {
+  radio.addEventListener("change", onGovernEvaluate);
+});
+
 renderEvidence();
 onVectors();
+renderGovernorTests();
 
 /* Test seam: lets local validation drive the same functions the UI uses. */
 window.AXYOM_LAB = {
@@ -280,5 +454,20 @@ window.AXYOM_LAB = {
   hashTwice: hashTwice,
   compareTexts: compareTexts,
   runKnownVectors: runKnownVectors,
-  ui: { onHash: onHash, onCompare: onCompare, onVectors: onVectors }
+  governor: {
+    budgets: GOVERNOR_BUDGETS,
+    estimateBasis: GOVERNOR_BASIS,
+    countCharacters: countCharacters,
+    estimateTokens: estimateTokens,
+    evaluate: evaluateGovernor,
+    format: formatGovernorResult,
+    runTests: runGovernorTests
+  },
+  ui: {
+    onHash: onHash,
+    onCompare: onCompare,
+    onVectors: onVectors,
+    onGovernEvaluate: onGovernEvaluate,
+    renderGovernorTests: renderGovernorTests
+  }
 };

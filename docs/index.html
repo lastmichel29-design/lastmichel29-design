@@ -98,6 +98,62 @@
       </article>
     </section>
 
+    <section class="panel" id="governor" aria-labelledby="governorHeading">
+      <h2 id="governorHeading">AXYOM Context Governor</h2>
+      <p class="muted">Deterministic context-budget governance computed locally in your browser.
+        No LLM, no external API, no provider billing claim, no network request.</p>
+      <noscript>This section requires JavaScript in your browser.</noscript>
+
+      <article class="lab-block">
+        <h3>Task input</h3>
+        <label class="sr-only" for="govText">Task text to evaluate</label>
+        <textarea id="govText" rows="6" spellcheck="false"
+                  placeholder="Paste or type the task text to evaluate..."></textarea>
+
+        <fieldset class="gov-fieldset">
+          <legend>Task complexity</legend>
+          <div class="gov-radios">
+            <label><input type="radio" name="govclass" value="MICRO" checked> MICRO</label>
+            <label><input type="radio" name="govclass" value="SMALL"> SMALL</label>
+            <label><input type="radio" name="govclass" value="NORMAL"> NORMAL</label>
+            <label><input type="radio" name="govclass" value="DEEP"> DEEP</label>
+            <label><input type="radio" name="govclass" value="RESEARCH"> RESEARCH</label>
+          </div>
+        </fieldset>
+
+        <div class="lab-actions">
+          <button type="button" class="btn" id="govBtn">Evaluate budget</button>
+          <button type="button" class="ghost" id="govClearBtn">Clear</button>
+        </div>
+
+        <output id="govOut" class="mono" aria-live="polite" for="govText"></output>
+        <p><span class="local-badge">LOCAL_ESTIMATE_ONLY</span></p>
+        <p class="note">Formula: <code>ESTIMATED_TOKENS = ceil(character_count / 4)</code>.
+          This is a local approximation, not exact tokenizer output and not provider billing data.</p>
+      </article>
+
+      <article class="lab-block">
+        <h3>Automated tests</h3>
+        <p class="muted">Deterministic boundary cases, executed in this browser.</p>
+        <div class="lab-actions">
+          <button type="button" class="btn" id="govTestsBtn">Run governor tests</button>
+        </div>
+        <output id="govTestsOut" class="mono" aria-live="polite"></output>
+      </article>
+
+      <article class="lab-block">
+        <h3>Fail-closed boundaries</h3>
+        <ul class="boundary-list">
+          <li>Token count is an approximation based on characters / 4.</li>
+          <li>It is not provider billing data.</li>
+          <li>It does not execute a model.</li>
+          <li>It does not measure reasoning quality.</li>
+          <li>Budget compliance is not equivalent to correctness.</li>
+          <li>This public demo is not the private AXYOM runtime.</li>
+        </ul>
+      </article>
+    </section>
+
     <section class="panel" id="boundaries" aria-labelledby="boundariesHeading">
       <h2 id="boundariesHeading">Epistemic boundaries</h2>
       <ul class="boundary-list">
@@ -183,6 +239,18 @@
       "normal_estimated_tokens": 2586,
       "normal_budget": 12000,
       "provider_billing_measurement": false
+    }
+  },
+  "context_governor_demo": {
+    "estimate_formula": "ceil(character_count / 4)",
+    "estimate_basis": "LOCAL_ESTIMATE_ONLY",
+    "character_basis": "UNICODE_CODE_POINTS",
+    "budget_classes": {
+      "MICRO": 2000,
+      "SMALL": 6000,
+      "NORMAL": 12000,
+      "DEEP": 30000,
+      "RESEARCH": 60000
     }
   },
   "public_boundary": {

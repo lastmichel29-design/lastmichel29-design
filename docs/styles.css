@@ -100,6 +100,22 @@ textarea{
   color:#d8e6ff;
 }
 .note{color:var(--muted);font-size:.92rem;margin-bottom:0}
+.note code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--cyan)}
+.gov-fieldset{border:1px solid var(--line);border-radius:10px;padding:10px 14px 14px;margin:14px 0}
+.gov-fieldset legend{color:var(--muted);padding:0 6px}
+.gov-radios{display:flex;flex-wrap:wrap;gap:12px}
+.gov-radios label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.gov-radios input{accent-color:var(--cyan);width:16px;height:16px}
+.local-badge{
+  display:inline-block;
+  border:1px solid var(--cyan);
+  color:var(--cyan);
+  border-radius:999px;
+  padding:4px 12px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:.78rem;
+  letter-spacing:.12em;
+}
 .boundary-list{margin:0;padding-left:20px}
 .boundary-list li{color:var(--muted);margin:8px 0}
 .boundary-list li::marker{color:var(--cyan)}

@@ -51,6 +51,18 @@
       "provider_billing_measurement": false
     }
   },
+  "context_governor_demo": {
+    "estimate_formula": "ceil(character_count / 4)",
+    "estimate_basis": "LOCAL_ESTIMATE_ONLY",
+    "character_basis": "UNICODE_CODE_POINTS",
+    "budget_classes": {
+      "MICRO": 2000,
+      "SMALL": 6000,
+      "NORMAL": 12000,
+      "DEEP": 30000,
+      "RESEARCH": 60000
+    }
+  },
   "public_boundary": {
     "excludes": [
       "private runtime source",
