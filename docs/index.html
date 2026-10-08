@@ -21,8 +21,8 @@
       <p class="rule">Execution is not equivalent to verification.</p>
     </section>
 
-    <section class="panel">
-      <h2>Try the public agent</h2>
+    <section class="panel" aria-labelledby="agentHeading">
+      <h2 id="agentHeading">Try the public agent</h2>
       <p class="muted">No LLM, no API key, no private runtime, no network request. Answers come only from the public knowledge file.</p>
 
       <div id="chat" class="chat" role="log" aria-live="polite" aria-relevant="additions" tabindex="0">
@@ -37,12 +37,77 @@
         <button type="button" data-q="What services are available?">Freelance services</button>
       </div>
 
-      <form id="agentForm">
+      <form id="agentForm" method="get" action="">
         <label class="sr-only" for="question">Ask the AXYOM public demo a question</label>
-        <input id="question" name="q" autocomplete="off" placeholder="Ask the public AXYOM demo...">
+        <input id="question" name="q" type="text" autocomplete="off" placeholder="Ask the public AXYOM demo...">
         <button type="submit">Ask</button>
+        <noscript>This demo requires JavaScript in your browser.</noscript>
       </form>
-      <noscript>This demo requires JavaScript in your browser.</noscript>
+    </section>
+
+    <section class="panel" id="lab" aria-labelledby="labHeading">
+      <h2 id="labHeading">AXYOM Verification Lab</h2>
+      <p class="muted">Deterministic verification computed entirely in your browser with the Web Crypto API.
+        No server, no API, no LLM, no network request.</p>
+      <noscript>This section requires JavaScript in your browser.</noscript>
+
+      <article class="lab-block">
+        <h3>A · SHA-256 text</h3>
+        <label class="sr-only" for="labText">UTF-8 text to hash</label>
+        <textarea id="labText" rows="4" spellcheck="false"
+                  placeholder="Enter arbitrary UTF-8 text"></textarea>
+        <div class="lab-actions">
+          <button type="button" class="btn" id="hashBtn">Calculate SHA-256</button>
+        </div>
+        <output id="hashOut" class="mono" aria-live="polite" for="labText"></output>
+      </article>
+
+      <article class="lab-block">
+        <h3>B · Compare two texts</h3>
+        <div class="lab-row">
+          <div>
+            <label class="sr-only" for="textA">Text A</label>
+            <textarea id="textA" rows="5" spellcheck="false" placeholder="TEXT_A"></textarea>
+          </div>
+          <div>
+            <label class="sr-only" for="textB">Text B</label>
+            <textarea id="textB" rows="5" spellcheck="false" placeholder="TEXT_B"></textarea>
+          </div>
+        </div>
+        <div class="lab-actions">
+          <button type="button" class="btn" id="compareBtn">Compare UTF-8 bytes</button>
+          <button type="button" class="ghost" id="compareClearBtn">Clear both</button>
+        </div>
+        <output id="compareOut" class="mono" aria-live="polite"></output>
+        <p class="note">A matching SHA-256 demonstrates identical UTF-8 byte input for this
+          comparison. It does not prove truth, authorship, origin or meaning.</p>
+      </article>
+
+      <article class="lab-block">
+        <h3>C · Known test vectors</h3>
+        <div class="lab-actions">
+          <button type="button" class="btn" id="vectorsBtn">Run known vectors</button>
+        </div>
+        <output id="vectorsOut" class="mono" aria-live="polite"></output>
+      </article>
+
+      <article class="lab-block">
+        <h3>D · Public evidence panel</h3>
+        <p class="muted">Sanitized values read from public_agent_knowledge.json. No interpretation is added.</p>
+        <div id="evidenceOut" class="mono evidence" aria-live="polite"></div>
+      </article>
+    </section>
+
+    <section class="panel" id="boundaries" aria-labelledby="boundariesHeading">
+      <h2 id="boundariesHeading">Epistemic boundaries</h2>
+      <ul class="boundary-list">
+        <li>A SHA-256 hash demonstrates byte identity, not truth.</li>
+        <li>PASS for the known vectors certifies only the tests implemented on this page. It is not a general security guarantee.</li>
+        <li>This public demo is not the private AXYOM runtime.</li>
+        <li>This is not a production security certification.</li>
+        <li>No claim of absolute security.</li>
+        <li>No claim of human-level autonomy.</li>
+      </ul>
     </section>
 
     <section class="panel grid">
@@ -67,6 +132,72 @@
     </footer>
   </main>
 
+  <script type="application/json" id="public-knowledge">{
+  "schema_version": "AXYOM_PUBLIC_DEMO_KNOWLEDGE_V2",
+  "project": "AXYOM",
+  "principles": [
+    "Execution is not equivalent to verification.",
+    "A SHA-256 hash demonstrates byte identity, not truth.",
+    "Public evidence and private implementation are separated."
+  ],
+  "agent": {
+    "entries": [
+      {
+        "keys": ["what is axyom", "axyom", "que es axyom"],
+        "answer": "AXYOM is an independent R&D project focused on AI-agent evaluation, automation, local/offline AI, computer-use systems, and reproducible verification."
+      },
+      {
+        "keys": ["evidence", "proof", "what evidence exists", "pruebas"],
+        "answer": "Public evidence includes the 18-repository research lab, R4→R5 adjudication, Context Governor R1, and documented Windows computer-use experiments. Public evidence is intentionally separated from private implementation."
+      },
+      {
+        "keys": ["context governor", "tokens", "token"],
+        "answer": "Context Governor R1 is a local context-budget system designed to reduce unnecessary model context. Public self-tests include MICRO at an estimated 1,962 of 2,000 tokens and NORMAL at 2,586 of 12,000. These are local estimates, not provider billing values."
+      },
+      {
+        "keys": ["r4 r5", "r4", "r5", "classification"],
+        "answer": "R4 was preserved as historical evidence. R5 was created as a separate adjudication layer after weaknesses were found. Public results record 8 material role corrections, 8 taxonomy refinements, and 2 confirmations."
+      },
+      {
+        "keys": ["services", "freelance", "work", "hire"],
+        "answer": "Michel is available for AI-agent evaluation, Python and PowerShell automation, Windows automation, computer-use testing, local AI prototypes, repository auditing, and verification tooling."
+      },
+      {
+        "keys": ["windows", "uia", "automation"],
+        "answer": "AXYOM experiments include structured Windows UI Automation, accessibility-tree interaction, constrained actions, and post-action verification."
+      }
+    ],
+    "fallback_answer": "That information is not present in the public AXYOM corpus. This demo will not invent an answer.",
+    "knowledge_unavailable_answer": "Knowledge source unavailable: public_agent_knowledge.json could not be parsed. This demo fails closed and will not invent an answer."
+  },
+  "case_studies": {
+    "research_lab": {
+      "repositories_audited": 18,
+      "material_role_corrections": 8,
+      "taxonomy_refinements": 8,
+      "confirmed_classifications": 2
+    },
+    "context_governor_r1": {
+      "micro_estimated_tokens": 1962,
+      "micro_budget": 2000,
+      "normal_estimated_tokens": 2586,
+      "normal_budget": 12000,
+      "provider_billing_measurement": false
+    }
+  },
+  "public_boundary": {
+    "excludes": [
+      "private runtime source",
+      "credentials",
+      "private datasets",
+      "internal prompts",
+      "unpublished algorithms",
+      "private evaluation material",
+      "proprietary implementation details"
+    ]
+  }
+}
+</script>
   <script src="app.js"></script>
 </body>
 </html>
