@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="AXYOM public interactive showcase">
+  <title>AXYOM Public Demo</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="mark" aria-hidden="true">
+        <div class="a-shape">A</div>
+        <div class="core"></div>
+        <div class="orbit"></div>
+      </div>
+      <p class="eyebrow">PUBLIC · SANITIZED · DETERMINISTIC</p>
+      <h1>AXYOM Public Demo</h1>
+      <p class="lead">A small browser-only demonstration of AXYOM's verification-first approach.</p>
+      <p class="rule">Execution is not equivalent to verification.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Try the public agent</h2>
+      <p class="muted">No LLM, no API key, no private runtime, no network request. Answers come only from the public knowledge file.</p>
+
+      <div id="chat" class="chat" role="log" aria-live="polite" aria-relevant="additions" tabindex="0">
+        <div class="msg agent">Ask about AXYOM, evidence, R4→R5, Context Governor, or freelance services.</div>
+      </div>
+
+      <div class="suggestions" aria-label="Suggested questions">
+        <button type="button" data-q="What is AXYOM?">What is AXYOM?</button>
+        <button type="button" data-q="What evidence exists?">What evidence exists?</button>
+        <button type="button" data-q="What is the Context Governor?">Context Governor</button>
+        <button type="button" data-q="What happened from R4 to R5?">R4 → R5</button>
+        <button type="button" data-q="What services are available?">Freelance services</button>
+      </div>
+
+      <form id="agentForm">
+        <label class="sr-only" for="question">Ask the AXYOM public demo a question</label>
+        <input id="question" name="q" autocomplete="off" placeholder="Ask the public AXYOM demo...">
+        <button type="submit">Ask</button>
+      </form>
+      <noscript>This demo requires JavaScript in your browser.</noscript>
+    </section>
+
+    <section class="panel grid">
+      <article>
+        <h3>Verification-first</h3>
+        <p>Claims, execution, observation, verification and evidence are treated as different states.</p>
+      </article>
+      <article>
+        <h3>Public boundary</h3>
+        <p>This demo contains only sanitized material. It does not expose the private AXYOM implementation.</p>
+      </article>
+      <article>
+        <h3>Fail-closed</h3>
+        <p>If the public corpus does not support an answer, the demo says so instead of inventing one.</p>
+      </article>
+    </section>
+
+    <footer>
+      <a href="../NOTICE.md">Legal notice</a>
+      <span>·</span>
+      <a href="../showcase/README.md">Public showcase</a>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
