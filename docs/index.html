@@ -3,8 +3,22 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="AXYOM public interactive showcase">
-  <title>AXYOM Public Demo</title>
+  <title>AXYOM — AI Agents, Automation &amp; Verification Lab</title>
+  <meta name="description" content="AXYOM is a public demonstration of AI agents, automation and verification-first engineering: a browser-only verification lab, context budgeting for AI agents, and Windows automation evidence — all computed locally in your browser.">
+  <meta name="author" content="Michel Durán">
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://lastmichel29-design.github.io/lastmichel29-design/">
+
+  <meta property="og:title" content="AXYOM — AI Agents, Automation &amp; Verification Lab">
+  <meta property="og:description" content="A public, browser-only verification lab for AI agents and automation: SHA-256 evidence, context budgeting and deterministic claim classification, computed locally.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://lastmichel29-design.github.io/lastmichel29-design/">
+  <meta property="og:site_name" content="AXYOM Public Demo">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="AXYOM — AI Agents, Automation &amp; Verification Lab">
+  <meta name="twitter:description" content="A public, browser-only verification lab for AI agents and automation: SHA-256 evidence, context budgeting and deterministic claim classification, computed locally.">
+
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -15,7 +29,7 @@
         <div class="core"></div>
         <div class="orbit"></div>
       </div>
-      <p class="eyebrow">PUBLIC · SANITIZED · DETERMINISTIC</p>
+      <p class="eyebrow">PUBLIC DEMO · V4 · SANITIZED · DETERMINISTIC</p>
       <h1>AXYOM Public Demo</h1>
       <p class="lead">A small browser-only demonstration of AXYOM's verification-first approach.</p>
       <p class="rule">Execution is not equivalent to verification.</p>
@@ -23,13 +37,13 @@
 
     <section class="panel" aria-labelledby="agentHeading">
       <h2 id="agentHeading">Try the public agent</h2>
-      <p class="muted">No LLM, no API key, no private runtime, no network request. Answers come only from the public knowledge file.</p>
+      <p class="muted">No LLM, no API key, no private runtime, no external API or model network requests. Answers come only from the public knowledge file.</p>
 
       <div id="chat" class="chat" role="log" aria-live="polite" aria-relevant="additions" tabindex="0">
         <div class="msg agent">Ask about AXYOM, evidence, R4→R5, Context Governor, or freelance services.</div>
       </div>
 
-      <div class="suggestions" aria-label="Suggested questions">
+      <div class="suggestions" role="group" aria-label="Suggested questions">
         <button type="button" data-q="What is AXYOM?">What is AXYOM?</button>
         <button type="button" data-q="What evidence exists?">What evidence exists?</button>
         <button type="button" data-q="What is the Context Governor?">Context Governor</button>
@@ -48,7 +62,7 @@
     <section class="panel" id="lab" aria-labelledby="labHeading">
       <h2 id="labHeading">AXYOM Verification Lab</h2>
       <p class="muted">Deterministic verification computed entirely in your browser with the Web Crypto API.
-        No server, no API, no LLM, no network request.</p>
+        No server-side API, no LLM, no external API or model network requests.</p>
       <noscript>This section requires JavaScript in your browser.</noscript>
 
       <article class="lab-block">
@@ -90,18 +104,19 @@
         </div>
         <output id="vectorsOut" class="mono" aria-live="polite"></output>
       </article>
+    </section>
 
-      <article class="lab-block">
-        <h3>D · Public evidence panel</h3>
-        <p class="muted">Sanitized values read from public_agent_knowledge.json. No interpretation is added.</p>
-        <div id="evidenceOut" class="mono evidence" aria-live="polite"></div>
-      </article>
+    <section class="panel" id="evidence" aria-labelledby="evidenceHeading">
+      <h2 id="evidenceHeading">Public evidence</h2>
+      <p class="muted">Sanitized values read from <code>public_agent_knowledge.json</code>.
+        No interpretation is added.</p>
+      <div id="evidenceOut" class="mono evidence" aria-live="polite"></div>
     </section>
 
     <section class="panel" id="governor" aria-labelledby="governorHeading">
       <h2 id="governorHeading">AXYOM Context Governor</h2>
       <p class="muted">Deterministic context-budget governance computed locally in your browser.
-        No LLM, no external API, no provider billing claim, no network request.</p>
+        No LLM, no external API, no provider billing claim, no external API or model network requests.</p>
       <noscript>This section requires JavaScript in your browser.</noscript>
 
       <article class="lab-block">
@@ -157,7 +172,7 @@
     <section class="panel" id="judge" aria-labelledby="judgeHeading">
       <h2 id="judgeHeading">AXYOM Agent Judge</h2>
       <p class="muted">Deterministic classification of a claim and its evidence package, computed locally in your browser.
-        No LLM, no external API, no network request, no private runtime.</p>
+        No LLM, no external API or model network requests, no private runtime.</p>
       <noscript>This section requires JavaScript in your browser.</noscript>
 
       <article class="lab-block">
@@ -267,13 +282,14 @@
       </ul>
     </section>
 
-    <section class="panel grid">
+    <section class="panel grid" aria-labelledby="scopeHeading">
+      <h2 id="scopeHeading" class="sr-only">Scope of this demo</h2>
       <article>
         <h3>Verification-first</h3>
         <p>Claims, execution, observation, verification and evidence are treated as different states.</p>
       </article>
       <article>
-        <h3>Public boundary</h3>
+        <h3>Public / private boundary</h3>
         <p>This demo contains only sanitized material. It does not expose the private AXYOM implementation.</p>
       </article>
       <article>
@@ -283,9 +299,14 @@
     </section>
 
     <footer>
-      <a href="../NOTICE.md">Legal notice</a>
-      <span>·</span>
-      <a href="../showcase/README.md">Public showcase</a>
+      <nav aria-label="Site">
+        <a href="https://github.com/lastmichel29-design/lastmichel29-design">GitHub repository</a>
+        <span>·</span>
+        <a href="https://github.com/lastmichel29-design/lastmichel29-design/tree/main/showcase">Public showcase</a>
+        <span>·</span>
+        <a href="https://github.com/lastmichel29-design/lastmichel29-design/blob/main/NOTICE.md">Legal notice</a>
+      </nav>
+      <p class="version">PUBLIC DEMO · V4</p>
     </footer>
   </main>
 

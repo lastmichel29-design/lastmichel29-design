@@ -1,0 +1,6 @@
+# AXYOM Public Demo — static site crawling policy.
+# No tracking, no analytics, no ad robots.
+User-agent: *
+Allow: /
+
+Sitemap: https://lastmichel29-design.github.io/lastmichel29-design/sitemap.xml

@@ -2,8 +2,9 @@
 """Keep docs/public_agent_knowledge.json as the single source of truth.
 
 The browser cannot read a .json file without a runtime network request, and
-this demo publishes "no network request". The knowledge file is therefore
-mirrored byte-for-byte into an inert data block in docs/index.html:
+this demo promises no external API or model network requests. The knowledge
+file is therefore mirrored byte-for-byte into an inert data block in
+docs/index.html:
 
     <script type="application/json" id="public-knowledge"> ... </script>
 

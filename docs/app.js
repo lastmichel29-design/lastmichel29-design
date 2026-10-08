@@ -1,6 +1,7 @@
 "use strict";
 
-/* AXYOM Public Demo — browser-only, deterministic, offline.
+/* AXYOM Public Demo — browser-only, deterministic;
+   no external API or model network requests.
    Knowledge content is read from the #public-knowledge data block,
    which is generated from docs/public_agent_knowledge.json
    (single maintained source of truth; see tools/knowledge_sync.py). */
@@ -94,7 +95,7 @@ function renderEvidence() {
   const out = document.getElementById("evidenceOut");
   if (!out) return;
   if (!knowledge) {
-    out.textContent = "KNOWLEDGE_SOURCE=UNAVAILABLE";
+    writeOut("evidenceOut", "KNOWLEDGE_SOURCE=UNAVAILABLE");
     return;
   }
   const rl = knowledge.case_studies.research_lab || {};
@@ -111,7 +112,7 @@ function renderEvidence() {
     "NORMAL: estimated " + cg.normal_estimated_tokens + " / " + cg.normal_budget,
     "provider billing measurement: " + String(cg.provider_billing_measurement).toUpperCase()
   ];
-  out.textContent = lines.join("\n");
+  writeOut("evidenceOut", lines.join("\n"));
 }
 
 /* ------------------------------------------------------------------ */
@@ -195,7 +196,11 @@ async function runKnownVectors() {
 
 function writeOut(id, text) {
   const el = document.getElementById(id);
-  if (el) el.textContent = text;
+  if (!el) return;
+  el.textContent = text;
+  /* Only populated outputs become tab stops, so focus order stays clean. */
+  if (text) el.setAttribute("tabindex", "0");
+  else el.removeAttribute("tabindex");
 }
 
 function cryptoUnavailable(outId) {
