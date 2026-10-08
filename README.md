@@ -1,16 +1,33 @@
-# Michel Durán
+# Michel Durán | AXYOM
 
-### AI Agent & Automation Builder · Creator of AXYOM
+### AI Agent & Automation Builder · Local AI · Windows Automation · Verification-First Systems
 
-Independent builder from Chile focused on **AI-agent evaluation, automation, local/offline AI, computer-use systems, and reproducible verification**.
+Creator of **AXYOM**, an independent research and engineering project from Chile focused on **AI agents, automation, local/offline AI, computer-use systems, Windows UI Automation, and evidence-driven verification**.
 
 > **La verdad no se genera, se verifica.**
 
-## AXYOM
+## Try AXYOM
 
-**AXYOM** is my independent R&D project for controlled, testable and evidence-oriented agent systems.
+**Live public demo:**  
+https://lastmichel29-design.github.io/lastmichel29-design/
 
-I work around a simple engineering distinction:
+The public demo is browser-only, deterministic, sanitized, and intentionally separated from the private AXYOM runtime.
+
+Current public capabilities include:
+
+- deterministic public agent
+- SHA-256 verification lab
+- exact UTF-8 text comparison
+- known cryptographic test vectors
+- public evidence panel
+- explicit epistemic boundaries
+- fail-closed behavior when evidence is insufficient
+
+## What is AXYOM?
+
+AXYOM explores controlled, testable, and evidence-oriented AI-agent systems.
+
+The engineering model is:
 
 ```text
 claim → execution → observation → verification → evidence
@@ -18,121 +35,84 @@ claim → execution → observation → verification → evidence
 
 A successful execution is useful, but it is not automatically proof.
 
-## Try AXYOM
+The project focuses on building systems where actions are observable, results can be independently checked, and uncertainty is preserved instead of hidden.
 
-A small **public interactive demo** is now included in this repository under [`docs/`](docs/).
+## Engineering focus
 
-It is intentionally limited and safe to publish:
-
-- browser-only
-- deterministic
-- no LLM
-- no API key
-- no private AXYOM runtime
-- no network calls from the demo
-- refuses to invent answers outside its public corpus
-
-Source:
-
-- [Interactive demo](docs/index.html)
-- [Public demo knowledge](docs/public_agent_knowledge.json)
-
-The demo is prepared for **GitHub Pages**. Once Pages is enabled from the `/docs` folder on `main`, visitors can try it directly in their browser.
+- AI agent evaluation
+- Agentic AI systems
+- Python automation
+- PowerShell engineering
+- Windows UI Automation
+- Computer-use agents
+- Local / offline AI
+- Context-efficient agent workflows
+- Deterministic validation
+- Repository and system auditing
+- SHA-256 evidence and manifests
+- Fail-closed validation
+- Reproducible technical reporting
+- Evidence-driven execution
 
 ## Public showcase
-
-A sanitized public showcase is available here:
 
 - [AXYOM Public Showcase](showcase/README.md)
 - [Public / Private Boundary](showcase/PUBLIC_SCOPE.md)
 - [R4 → R5 Classification Adjudication](showcase/docs/CASE_STUDY_R4_TO_R5.md)
 - [Context Governor R1](showcase/docs/CASE_STUDY_CONTEXT_GOVERNOR_R1.md)
 - [Public Capability Evidence](showcase/evidence/PUBLIC_CAPABILITIES.json)
+- [Public Demo Source](docs/index.html)
 
-The showcase contains documentation and selected evidence only. It does not expose the private AXYOM runtime or proprietary implementation.
+The showcase contains sanitized documentation and selected evidence only. It does not expose the private AXYOM runtime, credentials, private datasets, internal prompts, or proprietary implementation details.
 
-## What I work on
+## Selected work
 
-- AI-agent evaluation
-- Python automation
-- PowerShell engineering
-- Windows UI Automation
-- Computer-use agent testing
-- Local / offline AI
-- Context-efficient agent workflows
-- Repository and system auditing
-- Deterministic validation
-- SHA-256 evidence and manifests
-- Fail-closed gates
-- Reproducible technical reporting
+### AI agent evaluation
 
-## Selected engineering work
+I build workflows for comparing agent frameworks, computer-use systems, benchmarks, GUI grounding approaches, and verification methods.
 
-### Agent research and evaluation
+Historical evidence is preserved rather than overwritten when later adjudication improves an earlier result.
 
-I maintain an independent research workflow for comparing agent frameworks, computer-use systems, benchmarks, GUI grounding approaches and verification methods.
+### Local and offline AI
 
-Historical evidence is preserved rather than overwritten when a later adjudication improves a prior result.
+AXYOM prioritizes local-first execution when practical. Deterministic tasks are routed to deterministic tools before model inference whenever possible.
 
-### Context-efficient agents
+### Windows automation and computer use
 
-I build local tooling to reduce unnecessary model context and route deterministic work to deterministic tools first.
+I work with Windows UI Automation, accessibility trees, constrained actions, post-action observation, and verification.
 
-The objective is simple:
+The objective is not unrestricted autonomy.
 
-**use the smallest adequate context, then verify the result.**
-
-### Windows computer-use experiments
-
-I work with structured Windows automation, accessibility trees, constrained actions and post-action verification.
-
-The goal is not unrestricted autonomy.
-
-The goal is:
+The objective is:
 
 **controlled action + observable result + verification.**
 
+### Context-efficient agents
+
+I build tooling to reduce unnecessary context and keep agent workflows measurable.
+
+Public Context Governor work uses explicit budget classes and local estimates while clearly separating those estimates from provider billing measurements.
+
 ## Technologies
 
-**Languages & automation**
-
+**Languages and automation**  
 `Python` · `PowerShell` · `JavaScript`
 
-**Reasoning & local AI**
-
+**Reasoning and local AI**  
 `Ollama` · `Z3` · `SymPy` · local model experimentation
 
-**Agent engineering**
+**Agent engineering**  
+Windows UI Automation · accessibility trees · computer-use systems · agent evaluation · context routing · verification workflows
 
-Windows UI Automation · accessibility trees · computer-use agents · context routing · verification workflows
+**Engineering practice**  
+Git · SHA-256 manifests · immutable checkpoints · testing · technical auditing · reproducible evidence
 
-**Engineering practice**
+## Available for selected freelance work
 
-Git · SHA-256 manifests · immutable checkpoints · testing · technical auditing · evidence-driven workflows
+I am available for selected projects involving:
 
-## Public / private boundary
-
-This GitHub profile intentionally publishes only **sanitized demonstrations, documentation and selected case studies**.
-
-Private AXYOM components are not published here, including:
-
-- core implementation
-- private runtime source
-- credentials and API keys
-- private datasets
-- unpublished algorithms
-- internal prompts
-- private evaluation material
-- proprietary implementation details
-
-Public material is intended to demonstrate engineering capability without exposing the private implementation.
-
-## Available for freelance work
-
-I am available for selected work involving:
-
-- AI-agent evaluation
-- Python / PowerShell automation
+- AI agent evaluation
+- Python and PowerShell automation
 - Windows automation
 - computer-use testing
 - local AI prototypes
@@ -140,7 +120,7 @@ I am available for selected work involving:
 - agent reliability and verification tooling
 - context optimization for coding and research agents
 
-## Engineering principle
+## Verification-first architecture
 
 ```text
 INPUT
@@ -168,15 +148,29 @@ I prefer a system that can say:
 
 rather than manufacture certainty.
 
+## Public / private boundary
+
+This GitHub profile intentionally publishes only sanitized demonstrations, documentation, and selected case studies.
+
+Private AXYOM components are not published here, including:
+
+- private runtime source
+- credentials and API keys
+- private datasets
+- unpublished algorithms
+- internal prompts
+- private evaluation material
+- proprietary implementation details
+
 ## Legal / IP
 
 Copyright © 2026 Michel Durán. All rights reserved.
 
 Public availability of this profile and showcase does not constitute an open-source license for AXYOM's private implementation. Third-party names and trademarks belong to their respective owners; no affiliation or endorsement is implied.
 
-See [NOTICE.md](NOTICE.md) for the public legal notice.
+See [NOTICE.md](NOTICE.md).
 
 ---
 
 **Michel Durán**  
-Creator of **AXYOM** · Chile
+**Creator of AXYOM · AI Agents & Automation · Chile**
