@@ -1,0 +1,35 @@
+{
+  "schema_version": "AXYOM_PUBLIC_DEMO_KNOWLEDGE_V1",
+  "project": "AXYOM",
+  "principles": [
+    "Execution is not equivalent to verification.",
+    "A SHA-256 hash demonstrates byte identity, not truth.",
+    "Public evidence and private implementation are separated."
+  ],
+  "case_studies": {
+    "research_lab": {
+      "repositories_audited": 18,
+      "material_role_corrections": 8,
+      "taxonomy_refinements": 8,
+      "confirmed_classifications": 2
+    },
+    "context_governor_r1": {
+      "micro_estimated_tokens": 1962,
+      "micro_budget": 2000,
+      "normal_estimated_tokens": 2586,
+      "normal_budget": 12000,
+      "provider_billing_measurement": false
+    }
+  },
+  "public_boundary": {
+    "excludes": [
+      "private runtime source",
+      "credentials",
+      "private datasets",
+      "internal prompts",
+      "unpublished algorithms",
+      "private evaluation material",
+      "proprietary implementation details"
+    ]
+  }
+}
