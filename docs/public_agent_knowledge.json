@@ -63,6 +63,95 @@
       "RESEARCH": 60000
     }
   },
+  "agent_judge": {
+    "source_types": [
+      "NONE",
+      "USER_ASSERTION",
+      "DOCUMENT",
+      "HASHED_ARTIFACT",
+      "TEST_RESULT",
+      "REPRODUCIBLE_EXECUTION",
+      "INDEPENDENT_REPRODUCTION"
+    ],
+    "allowed_classifications": [
+      "CLAIM",
+      "EVIDENCE",
+      "VERIFIED_ARTIFACT",
+      "REPRODUCED",
+      "INSUFFICIENT_EVIDENCE",
+      "UNKNOWN"
+    ],
+    "forbidden_classifications": ["TRUE", "FALSE", "PROVEN", "CERTIFIED", "SECURE"],
+    "strength_scale": ["NONE", "LOW", "MEDIUM", "HIGH", "REPRODUCED"],
+    "strength_by_classification": {
+      "UNKNOWN": "NONE",
+      "CLAIM": "NONE",
+      "INSUFFICIENT_EVIDENCE": "LOW",
+      "EVIDENCE": "MEDIUM",
+      "VERIFIED_ARTIFACT": "HIGH",
+      "REPRODUCED": "REPRODUCED"
+    },
+    "notes": {
+      "TEST_RESULT": "Test output is evidence of the test result, not universal truth.",
+      "REPRODUCIBLE_EXECUTION": "Observed reproducible execution strengthens evidence but does not prove every semantic claim.",
+      "INDEPENDENT_REPRODUCTION": "Independent reproduction provides stronger evidence than a single local run."
+    },
+    "rules": [
+      { "id": 1, "when": "Claim text is empty.", "then": "UNKNOWN" },
+      { "id": 2, "when": "Claim exists and evidence text is empty.", "then": "CLAIM" },
+      { "id": 3, "when": "Evidence exists and source type is USER_ASSERTION.", "then": "INSUFFICIENT_EVIDENCE" },
+      { "id": 4, "when": "Source type is DOCUMENT.", "then": "EVIDENCE" },
+      {
+        "id": 5,
+        "when": "Source type is HASHED_ARTIFACT and both hashes are valid 64-hex SHA-256 digests that match exactly.",
+        "then": "VERIFIED_ARTIFACT",
+        "else": "INSUFFICIENT_EVIDENCE"
+      },
+      { "id": 6, "when": "Source type is TEST_RESULT.", "then": "EVIDENCE", "note": "TEST_RESULT" },
+      { "id": 7, "when": "Source type is REPRODUCIBLE_EXECUTION.", "then": "VERIFIED_ARTIFACT", "note": "REPRODUCIBLE_EXECUTION" },
+      { "id": 8, "when": "Source type is INDEPENDENT_REPRODUCTION.", "then": "REPRODUCED", "note": "INDEPENDENT_REPRODUCTION" }
+    ],
+    "examples": [
+      {
+        "id": "A",
+        "claim": "This file is byte-identical to the expected artifact.",
+        "evidence": "SHA-256 manifest entry for artifact.txt equals the observed digest.",
+        "source_type": "HASHED_ARTIFACT",
+        "expected_hash": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+        "observed_hash": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+        "expected_classification": "VERIFIED_ARTIFACT"
+      },
+      {
+        "id": "B",
+        "claim": "This program is perfectly secure.",
+        "evidence": "23 tests passed.",
+        "source_type": "TEST_RESULT",
+        "expected_hash": "",
+        "observed_hash": "",
+        "expected_classification": "EVIDENCE",
+        "disclaimer": "Expected: EVIDENCE. Not TRUE, not VERIFIED_ARTIFACT. The demo classifies the package as evidence only."
+      },
+      {
+        "id": "C",
+        "claim": "This result was independently reproduced.",
+        "evidence": "Two independent runs produced matching verified outputs.",
+        "source_type": "INDEPENDENT_REPRODUCTION",
+        "expected_hash": "",
+        "observed_hash": "",
+        "expected_classification": "REPRODUCED"
+      },
+      {
+        "id": "D",
+        "claim": "AXYOM is conscious.",
+        "evidence": "It seems conscious.",
+        "source_type": "USER_ASSERTION",
+        "expected_hash": "",
+        "observed_hash": "",
+        "expected_classification": "INSUFFICIENT_EVIDENCE",
+        "disclaimer": "Epistemically neutral: the demo makes no claim about consciousness; it only classifies the evidence state."
+      }
+    ]
+  },
   "public_boundary": {
     "excludes": [
       "private runtime source",

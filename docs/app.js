@@ -414,6 +414,484 @@ function onGovernClear() {
   textArea.focus();
 }
 
+/* ------------------------------------------------------------------ */
+/* Agent Judge v4 — deterministic claim/evidence classification         */
+/* ------------------------------------------------------------------ */
+
+const JUDGE_CONFIG = (knowledge && knowledge.agent_judge) || null;
+const SHA256_HEX = /^[0-9a-fA-F]{64}$/;
+
+function judgeHashCheck(sourceType, expectedHash, observedHash) {
+  if (sourceType !== "HASHED_ARTIFACT") {
+    return { status: "NOT_APPLICABLE", match: false };
+  }
+  const expected = String(expectedHash || "").trim();
+  const observed = String(observedHash || "").trim();
+  if (!expected && !observed) return { status: "NOT_PROVIDED", match: false };
+  if (!expected || !observed) return { status: "INCOMPLETE", match: false };
+  if (!SHA256_HEX.test(expected) || !SHA256_HEX.test(observed)) {
+    return { status: "INVALID_FORMAT", match: false };
+  }
+  if (expected === observed) return { status: "MATCH", match: true };
+  return { status: "MISMATCH", match: false };
+}
+
+function classifyJudge(input) {
+  const claim = String((input && input.claim) || "");
+  const evidence = String((input && input.evidence) || "");
+  const sourceType = String((input && input.sourceType) || "NONE").trim() || "NONE";
+  const claimPresent = claim.trim().length > 0;
+  const evidencePresent = evidence.trim().length > 0;
+  const hash = judgeHashCheck(sourceType, input && input.expectedHash, input && input.observedHash);
+
+  if (!JUDGE_CONFIG) {
+    return {
+      classification: "UNKNOWN",
+      claimPresent: claimPresent,
+      evidencePresent: evidencePresent,
+      sourceType: sourceType,
+      hashCheck: hash.status,
+      strength: "NONE",
+      reason: "Knowledge source unavailable; classification fails closed.",
+      note: ""
+    };
+  }
+
+  let classification;
+  let reason;
+  let note = "";
+
+  if (!claimPresent) {
+    classification = "UNKNOWN";
+    reason = "Claim text is empty, so there is nothing to classify.";
+  } else if (!evidencePresent) {
+    classification = "CLAIM";
+    reason = "A claim is present but no evidence text was provided.";
+  } else {
+    switch (sourceType) {
+      case "NONE":
+        classification = "INSUFFICIENT_EVIDENCE";
+        reason = "Evidence text is present but no source type was selected.";
+        break;
+      case "USER_ASSERTION":
+        classification = "INSUFFICIENT_EVIDENCE";
+        reason = "A user assertion alone is not sufficient evidence.";
+        break;
+      case "DOCUMENT":
+        classification = "EVIDENCE";
+        reason = "A document source classifies the package as evidence.";
+        break;
+      case "HASHED_ARTIFACT":
+        if (hash.match) {
+          classification = "VERIFIED_ARTIFACT";
+          reason = "Both hashes are valid 64-hex SHA-256 digests and match exactly.";
+        } else {
+          classification = "INSUFFICIENT_EVIDENCE";
+          reason = "Hash check status is " + hash.status +
+            "; a verified artifact requires two valid SHA-256 digests that match exactly.";
+        }
+        break;
+      case "TEST_RESULT":
+        classification = "EVIDENCE";
+        reason = "A test result source classifies the package as evidence.";
+        note = JUDGE_CONFIG.notes.TEST_RESULT;
+        break;
+      case "REPRODUCIBLE_EXECUTION":
+        classification = "VERIFIED_ARTIFACT";
+        reason = "A reproducible execution source classifies the package as a verified artifact.";
+        note = JUDGE_CONFIG.notes.REPRODUCIBLE_EXECUTION;
+        break;
+      case "INDEPENDENT_REPRODUCTION":
+        classification = "REPRODUCED";
+        reason = "An independent reproduction source classifies the package as reproduced.";
+        note = JUDGE_CONFIG.notes.INDEPENDENT_REPRODUCTION;
+        break;
+      default:
+        classification = "UNKNOWN";
+        reason = "Unrecognized source type; classification fails closed.";
+    }
+  }
+
+  const allowed = JUDGE_CONFIG.allowed_classifications || [];
+  const forbidden = JUDGE_CONFIG.forbidden_classifications || [];
+  if (allowed.indexOf(classification) === -1 || forbidden.indexOf(classification) !== -1) {
+    classification = "UNKNOWN";
+    note = "";
+    reason = "Classification outside the allowed vocabulary; fails closed.";
+  }
+
+  const strengthMap = JUDGE_CONFIG.strength_by_classification || {};
+
+  return {
+    classification: classification,
+    claimPresent: claimPresent,
+    evidencePresent: evidencePresent,
+    sourceType: sourceType,
+    hashCheck: hash.status,
+    strength: strengthMap[classification] || "NONE",
+    reason: reason,
+    note: note
+  };
+}
+
+function formatJudgeResult(result) {
+  const lines = [
+    "CLASSIFICATION=" + result.classification,
+    "CLAIM_PRESENT=" + (result.claimPresent ? "TRUE" : "FALSE"),
+    "EVIDENCE_PRESENT=" + (result.evidencePresent ? "TRUE" : "FALSE"),
+    "SOURCE_TYPE=" + result.sourceType,
+    "HASH_CHECK=" + result.hashCheck,
+    "EVIDENCE_STRENGTH=" + result.strength,
+    "REASON=" + result.reason
+  ];
+  if (result.note) lines.push("NOTE=" + result.note);
+  return lines.join("\n");
+}
+
+function renderJudgeRules() {
+  const list = document.getElementById("judgeRules");
+  if (!list) return;
+  list.replaceChildren();
+  if (!JUDGE_CONFIG || !Array.isArray(JUDGE_CONFIG.rules)) {
+    const li = document.createElement("li");
+    li.textContent = "Knowledge source unavailable; no rules can be rendered.";
+    list.appendChild(li);
+    return;
+  }
+  JUDGE_CONFIG.rules.forEach((rule) => {
+    const li = document.createElement("li");
+    let text = rule.when + " Classify as " + rule.then + ".";
+    if (rule.else) text += " Otherwise classify as " + rule.else + ".";
+    if (rule.note && JUDGE_CONFIG.notes && JUDGE_CONFIG.notes[rule.note]) {
+      text += " Note: " + JUDGE_CONFIG.notes[rule.note];
+    }
+    li.textContent = text;
+    list.appendChild(li);
+  });
+}
+
+function renderJudgeExamples() {
+  const host = document.getElementById("judgeExamples");
+  if (!host) return;
+  host.replaceChildren();
+  if (!JUDGE_CONFIG || !Array.isArray(JUDGE_CONFIG.examples)) {
+    const p = document.createElement("p");
+    p.className = "muted";
+    p.textContent = "Knowledge source unavailable; examples cannot be rendered.";
+    host.appendChild(p);
+    return;
+  }
+  JUDGE_CONFIG.examples.forEach((ex) => {
+    const card = document.createElement("article");
+    card.className = "example-card";
+
+    const title = document.createElement("h4");
+    title.textContent = "Example " + ex.id;
+    card.appendChild(title);
+
+    const list = document.createElement("dl");
+    const rows = [
+      ["CLAIM", ex.claim],
+      ["EVIDENCE", ex.evidence],
+      ["SOURCE_TYPE", ex.source_type],
+      ["EXPECTED_HASH", ex.expected_hash || "(none)"],
+      ["OBSERVED_HASH", ex.observed_hash || "(none)"],
+      ["EXPECTED CLASSIFICATION", ex.expected_classification]
+    ];
+    rows.forEach((row) => {
+      const key = document.createElement("dt");
+      key.textContent = row[0];
+      const value = document.createElement("dd");
+      value.textContent = row[1];
+      list.appendChild(key);
+      list.appendChild(value);
+    });
+    card.appendChild(list);
+
+    if (ex.disclaimer) {
+      const p = document.createElement("p");
+      p.className = "muted";
+      p.textContent = ex.disclaimer;
+      card.appendChild(p);
+    }
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "ghost";
+    button.textContent = "Load example " + ex.id;
+    button.addEventListener("click", () => loadJudgeExample(ex));
+    card.appendChild(button);
+
+    host.appendChild(card);
+  });
+}
+
+function loadJudgeExample(ex) {
+  const claim = document.getElementById("judgeClaim");
+  const evidence = document.getElementById("judgeEvidence");
+  const expected = document.getElementById("judgeExpectedHash");
+  const observed = document.getElementById("judgeObservedHash");
+  if (!ex || !claim || !evidence || !expected || !observed) return;
+  claim.value = ex.claim || "";
+  evidence.value = ex.evidence || "";
+  expected.value = ex.expected_hash || "";
+  observed.value = ex.observed_hash || "";
+  document.querySelectorAll('input[name="judgesource"]').forEach((radio) => {
+    radio.checked = radio.value === ex.source_type;
+  });
+  onJudgeClassify();
+}
+
+function judgeInputState() {
+  const claim = document.getElementById("judgeClaim");
+  const evidence = document.getElementById("judgeEvidence");
+  const expected = document.getElementById("judgeExpectedHash");
+  const observed = document.getElementById("judgeObservedHash");
+  const selected = document.querySelector('input[name="judgesource"]:checked');
+  return {
+    claim: claim ? claim.value : "",
+    evidence: evidence ? evidence.value : "",
+    sourceType: selected ? selected.value : "NONE",
+    expectedHash: expected ? expected.value : "",
+    observedHash: observed ? observed.value : ""
+  };
+}
+
+function onJudgeClassify() {
+  const result = classifyJudge(judgeInputState());
+  writeOut("judgeOut", formatJudgeResult(result));
+}
+
+function onJudgeClear() {
+  const claim = document.getElementById("judgeClaim");
+  const evidence = document.getElementById("judgeEvidence");
+  const expected = document.getElementById("judgeExpectedHash");
+  const observed = document.getElementById("judgeObservedHash");
+  if (claim) claim.value = "";
+  if (evidence) evidence.value = "";
+  if (expected) expected.value = "";
+  if (observed) observed.value = "";
+  document.querySelectorAll('input[name="judgesource"]').forEach((radio) => {
+    radio.checked = radio.value === "NONE";
+  });
+  writeOut("judgeOut", "");
+  if (claim) claim.focus();
+}
+
+function runJudgeTests() {
+  const results = [];
+  const add = (id, pass, detail) => results.push({ id: id, pass: Boolean(pass), detail: detail || "" });
+
+  if (!JUDGE_CONFIG) {
+    add("JUDGE_CONFIG_AVAILABLE", false, "knowledge source unavailable");
+    return { results: results, allPass: false };
+  }
+
+  const digestOfAbc = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
+  const zeroDigest = "0000000000000000000000000000000000000000000000000000000000000000";
+
+  const cases = [
+    { id: "EMPTY_CLAIM", in: { claim: "", evidence: "Evidence text.", sourceType: "DOCUMENT" }, expect: "UNKNOWN" },
+    { id: "CLAIM_ONLY", in: { claim: "Statement under review.", evidence: "", sourceType: "NONE" }, expect: "CLAIM" },
+    {
+      id: "USER_ASSERTION_WITH_EVIDENCE",
+      in: { claim: "The system works as intended.", evidence: "A user reports success.", sourceType: "USER_ASSERTION" },
+      expect: "INSUFFICIENT_EVIDENCE"
+    },
+    {
+      id: "DOCUMENT_WITH_EVIDENCE",
+      in: { claim: "The interface is specified.", evidence: "Public specification document.", sourceType: "DOCUMENT" },
+      expect: "EVIDENCE"
+    },
+    {
+      id: "HASH_MATCH_VALID_SHA256",
+      in: {
+        claim: "The file matches the manifest.",
+        evidence: "SHA-256 manifest entry for artifact.txt.",
+        sourceType: "HASHED_ARTIFACT",
+        expectedHash: digestOfAbc,
+        observedHash: digestOfAbc
+      },
+      expect: "VERIFIED_ARTIFACT",
+      hashCheck: "MATCH"
+    },
+    {
+      id: "HASH_MISMATCH",
+      in: {
+        claim: "The file matches the manifest.",
+        evidence: "SHA-256 manifest entry for artifact.txt.",
+        sourceType: "HASHED_ARTIFACT",
+        expectedHash: digestOfAbc,
+        observedHash: zeroDigest
+      },
+      expect: "INSUFFICIENT_EVIDENCE",
+      hashCheck: "MISMATCH"
+    },
+    {
+      id: "HASH_INVALID_FORMAT",
+      in: {
+        claim: "The file matches the manifest.",
+        evidence: "SHA-256 manifest entry for artifact.txt.",
+        sourceType: "HASHED_ARTIFACT",
+        expectedHash: "abc123",
+        observedHash: "abc123"
+      },
+      expect: "INSUFFICIENT_EVIDENCE",
+      hashCheck: "INVALID_FORMAT"
+    },
+    {
+      id: "TEST_RESULT",
+      in: { claim: "The suite passes.", evidence: "23 tests passed locally.", sourceType: "TEST_RESULT" },
+      expect: "EVIDENCE"
+    },
+    {
+      id: "REPRODUCIBLE_EXECUTION",
+      in: { claim: "The run reproduces.", evidence: "The same script produced the same output.", sourceType: "REPRODUCIBLE_EXECUTION" },
+      expect: "VERIFIED_ARTIFACT"
+    },
+    {
+      id: "INDEPENDENT_REPRODUCTION",
+      in: { claim: "The result was reproduced.", evidence: "A second machine matched the output.", sourceType: "INDEPENDENT_REPRODUCTION" },
+      expect: "REPRODUCED"
+    },
+    {
+      id: "CONSCIOUSNESS_ASSERTION",
+      in: { claim: "AXYOM is conscious.", evidence: "It seems conscious.", sourceType: "USER_ASSERTION" },
+      expect: "INSUFFICIENT_EVIDENCE"
+    },
+    {
+      id: "NO_SOURCE_TYPE_WITH_EVIDENCE",
+      in: { claim: "Statement under review.", evidence: "Evidence text.", sourceType: "NONE" },
+      expect: "INSUFFICIENT_EVIDENCE"
+    },
+    {
+      id: "UNRECOGNIZED_SOURCE_TYPE",
+      in: { claim: "Statement under review.", evidence: "Evidence text.", sourceType: "ORACLE" },
+      expect: "UNKNOWN"
+    },
+    {
+      id: "SINGLE_HASH_PROVIDED",
+      in: {
+        claim: "The file matches the manifest.",
+        evidence: "SHA-256 manifest entry for artifact.txt.",
+        sourceType: "HASHED_ARTIFACT",
+        expectedHash: digestOfAbc,
+        observedHash: ""
+      },
+      expect: "INSUFFICIENT_EVIDENCE",
+      hashCheck: "INCOMPLETE"
+    },
+    {
+      id: "HASH_NOT_PROVIDED",
+      in: {
+        claim: "The file matches the manifest.",
+        evidence: "SHA-256 manifest entry for artifact.txt.",
+        sourceType: "HASHED_ARTIFACT",
+        expectedHash: "",
+        observedHash: ""
+      },
+      expect: "INSUFFICIENT_EVIDENCE",
+      hashCheck: "NOT_PROVIDED"
+    },
+    {
+      id: "HASH_COMPARISON_EXACT_CASE",
+      in: {
+        claim: "The file matches the manifest.",
+        evidence: "SHA-256 manifest entry for artifact.txt.",
+        sourceType: "HASHED_ARTIFACT",
+        expectedHash: digestOfAbc.toUpperCase(),
+        observedHash: digestOfAbc
+      },
+      expect: "INSUFFICIENT_EVIDENCE",
+      hashCheck: "MISMATCH"
+    }
+  ];
+
+  const classified = [];
+  for (const testCase of cases) {
+    let pass = false;
+    let detail = "";
+    try {
+      const r = classifyJudge(testCase.in);
+      classified.push(r);
+      let hashOk = true;
+      if (testCase.hashCheck) hashOk = r.hashCheck === testCase.hashCheck;
+      pass = !r.error && r.classification === testCase.expect && hashOk;
+      detail = "got=" + r.classification + " expected=" + testCase.expect +
+        " hashCheck=" + r.hashCheck + " strength=" + r.strength;
+    } catch (e) {
+      detail = String(e);
+    }
+    add(testCase.id, pass, detail);
+  }
+
+  try {
+    const allowed = JUDGE_CONFIG.allowed_classifications;
+    const forbidden = JUDGE_CONFIG.forbidden_classifications;
+    const vocabularyOk = classified.every((r) =>
+      allowed.indexOf(r.classification) !== -1 && forbidden.indexOf(r.classification) === -1);
+    add("CLASSIFICATION_VOCABULARY", vocabularyOk,
+      allowed.join(",") + " | forbidden=" + forbidden.join(","));
+
+    const scale = JUDGE_CONFIG.strength_scale;
+    const strengthOk = classified.every((r) => scale.indexOf(r.strength) !== -1);
+    add("EVIDENCE_STRENGTH_VOCABULARY", strengthOk, scale.join(","));
+
+    const noteById = {
+      TEST_RESULT: JUDGE_CONFIG.notes.TEST_RESULT,
+      REPRODUCIBLE_EXECUTION: JUDGE_CONFIG.notes.REPRODUCIBLE_EXECUTION,
+      INDEPENDENT_REPRODUCTION: JUDGE_CONFIG.notes.INDEPENDENT_REPRODUCTION
+    };
+    const notesOk = Object.keys(noteById).every((key) => {
+      const r = classifyJudge({
+        claim: "Statement under review.",
+        evidence: "Evidence text.",
+        sourceType: key
+      });
+      return r.note === noteById[key];
+    });
+    add("NOTES_FOR_RULES_6_7_8", notesOk, "rule notes read from agent_judge.notes");
+  } catch (e) {
+    add("CLASSIFICATION_GUARDS", false, String(e));
+  }
+
+  if (Array.isArray(JUDGE_CONFIG.examples)) {
+    JUDGE_CONFIG.examples.forEach((ex) => {
+      let pass = false;
+      let detail = "";
+      try {
+        const r = classifyJudge({
+          claim: ex.claim,
+          evidence: ex.evidence,
+          sourceType: ex.source_type,
+          expectedHash: ex.expected_hash,
+          observedHash: ex.observed_hash
+        });
+        classified.push(r);
+        pass = r.classification === ex.expected_classification;
+        detail = "got=" + r.classification + " expected=" + ex.expected_classification;
+      } catch (e) {
+        detail = String(e);
+      }
+      add("EXAMPLE_" + ex.id, pass, detail);
+    });
+  } else {
+    add("EXAMPLES_AVAILABLE", false, "agent_judge.examples missing");
+  }
+
+  const allPass = results.length > 0 && results.every((r) => r.pass);
+  return { results: results, allPass: allPass };
+}
+
+function renderJudgeTests() {
+  const run = runJudgeTests();
+  const lines = run.results.map((r) => {
+    return r.id + "=" + (r.pass ? "PASS" : "FAIL") + (r.detail ? "\n  " + r.detail : "");
+  });
+  lines.push("JUDGE_TESTS_GLOBAL_PASS=" + (run.allPass ? "TRUE" : "FALSE"));
+  writeOut("judgeTestsOut", lines.join("\n"));
+}
+
 const hashBtn = document.getElementById("hashBtn");
 const compareBtn = document.getElementById("compareBtn");
 const vectorsBtn = document.getElementById("vectorsBtn");
@@ -442,9 +920,30 @@ document.querySelectorAll('input[name="govclass"]').forEach((radio) => {
   radio.addEventListener("change", onGovernEvaluate);
 });
 
+const judgeBtn = document.getElementById("judgeBtn");
+const judgeClearBtn = document.getElementById("judgeClearBtn");
+const judgeTestsBtn = document.getElementById("judgeTestsBtn");
+const judgeClaim = document.getElementById("judgeClaim");
+const judgeEvidence = document.getElementById("judgeEvidence");
+const judgeExpectedHash = document.getElementById("judgeExpectedHash");
+const judgeObservedHash = document.getElementById("judgeObservedHash");
+if (judgeBtn) judgeBtn.addEventListener("click", onJudgeClassify);
+if (judgeClearBtn) judgeClearBtn.addEventListener("click", onJudgeClear);
+if (judgeTestsBtn) judgeTestsBtn.addEventListener("click", renderJudgeTests);
+[judgeClaim, judgeEvidence, judgeExpectedHash, judgeObservedHash].forEach((field) => {
+  if (field) field.addEventListener("input", onJudgeClassify);
+});
+document.querySelectorAll('input[name="judgesource"]').forEach((radio) => {
+  radio.addEventListener("change", onJudgeClassify);
+});
+
 renderEvidence();
 onVectors();
 renderGovernorTests();
+renderJudgeRules();
+renderJudgeExamples();
+renderJudgeTests();
+onJudgeClassify();
 
 /* Test seam: lets local validation drive the same functions the UI uses. */
 window.AXYOM_LAB = {
@@ -463,11 +962,21 @@ window.AXYOM_LAB = {
     format: formatGovernorResult,
     runTests: runGovernorTests
   },
+  judge: {
+    config: JUDGE_CONFIG,
+    hashCheck: judgeHashCheck,
+    classify: classifyJudge,
+    format: formatJudgeResult,
+    runTests: runJudgeTests
+  },
   ui: {
     onHash: onHash,
     onCompare: onCompare,
     onVectors: onVectors,
     onGovernEvaluate: onGovernEvaluate,
-    renderGovernorTests: renderGovernorTests
+    renderGovernorTests: renderGovernorTests,
+    onJudgeClassify: onJudgeClassify,
+    renderJudgeTests: renderJudgeTests,
+    loadJudgeExample: loadJudgeExample
   }
 };

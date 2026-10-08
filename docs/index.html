@@ -154,6 +154,107 @@
       </article>
     </section>
 
+    <section class="panel" id="judge" aria-labelledby="judgeHeading">
+      <h2 id="judgeHeading">AXYOM Agent Judge</h2>
+      <p class="muted">Deterministic classification of a claim and its evidence package, computed locally in your browser.
+        No LLM, no external API, no network request, no private runtime.</p>
+      <noscript>This section requires JavaScript in your browser.</noscript>
+
+      <article class="lab-block">
+        <h3>Public explanation</h3>
+        <p class="judge-statement">AXYOM Agent Judge does not determine absolute truth. It classifies the evidence state of a claim according to explicit deterministic rules.</p>
+        <ul class="boundary-list">
+          <li>Artifact existence is not claim truth.</li>
+          <li>A hash match is not authorship.</li>
+          <li>A hash match is not meaning.</li>
+          <li>A passing test is not universal correctness.</li>
+          <li>Execution is not verification.</li>
+          <li>Verification is not absolute truth.</li>
+          <li>Independent reproduction is stronger evidence than a single local run.</li>
+        </ul>
+      </article>
+
+      <article class="lab-block">
+        <h3>Claim and evidence inputs</h3>
+        <label class="sr-only" for="judgeClaim">Claim text</label>
+        <textarea id="judgeClaim" rows="3" spellcheck="false"
+                  placeholder="CLAIM_TEXT — the statement to classify"></textarea>
+
+        <label class="sr-only" for="judgeEvidence">Evidence text</label>
+        <textarea id="judgeEvidence" rows="3" spellcheck="false"
+                  placeholder="EVIDENCE_TEXT — the supporting evidence package"></textarea>
+
+        <fieldset class="gov-fieldset">
+          <legend>Source type</legend>
+          <div class="gov-radios">
+            <label><input type="radio" name="judgesource" value="NONE" checked> NONE</label>
+            <label><input type="radio" name="judgesource" value="USER_ASSERTION"> USER_ASSERTION</label>
+            <label><input type="radio" name="judgesource" value="DOCUMENT"> DOCUMENT</label>
+            <label><input type="radio" name="judgesource" value="HASHED_ARTIFACT"> HASHED_ARTIFACT</label>
+            <label><input type="radio" name="judgesource" value="TEST_RESULT"> TEST_RESULT</label>
+            <label><input type="radio" name="judgesource" value="REPRODUCIBLE_EXECUTION"> REPRODUCIBLE_EXECUTION</label>
+            <label><input type="radio" name="judgesource" value="INDEPENDENT_REPRODUCTION"> INDEPENDENT_REPRODUCTION</label>
+          </div>
+        </fieldset>
+
+        <div class="judge-row">
+          <div>
+            <label class="sr-only" for="judgeExpectedHash">Expected hash</label>
+            <input id="judgeExpectedHash" type="text" autocomplete="off" spellcheck="false"
+                   placeholder="EXPECTED_HASH (64-hex SHA-256)">
+          </div>
+          <div>
+            <label class="sr-only" for="judgeObservedHash">Observed hash</label>
+            <input id="judgeObservedHash" type="text" autocomplete="off" spellcheck="false"
+                   placeholder="OBSERVED_HASH (64-hex SHA-256)">
+          </div>
+        </div>
+
+        <div class="lab-actions">
+          <button type="button" class="btn" id="judgeBtn">Classify claim</button>
+          <button type="button" class="ghost" id="judgeClearBtn">Clear</button>
+        </div>
+
+        <output id="judgeOut" class="mono" aria-live="polite"></output>
+        <p class="note">The hash check compares the two values as exact 64-character hexadecimal strings
+          (case-sensitive) and only applies to <code>HASHED_ARTIFACT</code>.</p>
+      </article>
+
+      <article class="lab-block">
+        <h3>Deterministic rules</h3>
+        <p class="muted">Evaluated in order; the first matching rule wins. Rendered from
+          <code>public_agent_knowledge.json</code>, the single maintained source.</p>
+        <ol id="judgeRules" class="rules-list"></ol>
+      </article>
+
+      <article class="lab-block">
+        <h3>Public examples</h3>
+        <p class="muted">Loading an example fills the inputs above and classifies it with the same rules the tests use.</p>
+        <div id="judgeExamples" class="examples-grid"></div>
+      </article>
+
+      <article class="lab-block">
+        <h3>Automated tests</h3>
+        <p class="muted">Deterministic classification cases, executed in this browser.</p>
+        <div class="lab-actions">
+          <button type="button" class="btn" id="judgeTestsBtn">Run judge tests</button>
+        </div>
+        <output id="judgeTestsOut" class="mono" aria-live="polite"></output>
+      </article>
+
+      <article class="lab-block">
+        <h3>Fail-closed boundaries</h3>
+        <ul class="boundary-list">
+          <li>The judge classifies evidence state; it never asserts absolute truth.</li>
+          <li>VERIFIED_ARTIFACT means two valid SHA-256 digests matched exactly — not authorship, not meaning, not truth.</li>
+          <li>TEST_RESULT is classified as evidence, never as proof.</li>
+          <li>Unrecognized or missing input fails closed to UNKNOWN or INSUFFICIENT_EVIDENCE.</li>
+          <li>Nothing is sent anywhere; classification runs in this browser.</li>
+          <li>This public demo is not the private AXYOM runtime.</li>
+        </ul>
+      </article>
+    </section>
+
     <section class="panel" id="boundaries" aria-labelledby="boundariesHeading">
       <h2 id="boundariesHeading">Epistemic boundaries</h2>
       <ul class="boundary-list">
@@ -252,6 +353,95 @@
       "DEEP": 30000,
       "RESEARCH": 60000
     }
+  },
+  "agent_judge": {
+    "source_types": [
+      "NONE",
+      "USER_ASSERTION",
+      "DOCUMENT",
+      "HASHED_ARTIFACT",
+      "TEST_RESULT",
+      "REPRODUCIBLE_EXECUTION",
+      "INDEPENDENT_REPRODUCTION"
+    ],
+    "allowed_classifications": [
+      "CLAIM",
+      "EVIDENCE",
+      "VERIFIED_ARTIFACT",
+      "REPRODUCED",
+      "INSUFFICIENT_EVIDENCE",
+      "UNKNOWN"
+    ],
+    "forbidden_classifications": ["TRUE", "FALSE", "PROVEN", "CERTIFIED", "SECURE"],
+    "strength_scale": ["NONE", "LOW", "MEDIUM", "HIGH", "REPRODUCED"],
+    "strength_by_classification": {
+      "UNKNOWN": "NONE",
+      "CLAIM": "NONE",
+      "INSUFFICIENT_EVIDENCE": "LOW",
+      "EVIDENCE": "MEDIUM",
+      "VERIFIED_ARTIFACT": "HIGH",
+      "REPRODUCED": "REPRODUCED"
+    },
+    "notes": {
+      "TEST_RESULT": "Test output is evidence of the test result, not universal truth.",
+      "REPRODUCIBLE_EXECUTION": "Observed reproducible execution strengthens evidence but does not prove every semantic claim.",
+      "INDEPENDENT_REPRODUCTION": "Independent reproduction provides stronger evidence than a single local run."
+    },
+    "rules": [
+      { "id": 1, "when": "Claim text is empty.", "then": "UNKNOWN" },
+      { "id": 2, "when": "Claim exists and evidence text is empty.", "then": "CLAIM" },
+      { "id": 3, "when": "Evidence exists and source type is USER_ASSERTION.", "then": "INSUFFICIENT_EVIDENCE" },
+      { "id": 4, "when": "Source type is DOCUMENT.", "then": "EVIDENCE" },
+      {
+        "id": 5,
+        "when": "Source type is HASHED_ARTIFACT and both hashes are valid 64-hex SHA-256 digests that match exactly.",
+        "then": "VERIFIED_ARTIFACT",
+        "else": "INSUFFICIENT_EVIDENCE"
+      },
+      { "id": 6, "when": "Source type is TEST_RESULT.", "then": "EVIDENCE", "note": "TEST_RESULT" },
+      { "id": 7, "when": "Source type is REPRODUCIBLE_EXECUTION.", "then": "VERIFIED_ARTIFACT", "note": "REPRODUCIBLE_EXECUTION" },
+      { "id": 8, "when": "Source type is INDEPENDENT_REPRODUCTION.", "then": "REPRODUCED", "note": "INDEPENDENT_REPRODUCTION" }
+    ],
+    "examples": [
+      {
+        "id": "A",
+        "claim": "This file is byte-identical to the expected artifact.",
+        "evidence": "SHA-256 manifest entry for artifact.txt equals the observed digest.",
+        "source_type": "HASHED_ARTIFACT",
+        "expected_hash": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+        "observed_hash": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+        "expected_classification": "VERIFIED_ARTIFACT"
+      },
+      {
+        "id": "B",
+        "claim": "This program is perfectly secure.",
+        "evidence": "23 tests passed.",
+        "source_type": "TEST_RESULT",
+        "expected_hash": "",
+        "observed_hash": "",
+        "expected_classification": "EVIDENCE",
+        "disclaimer": "Expected: EVIDENCE. Not TRUE, not VERIFIED_ARTIFACT. The demo classifies the package as evidence only."
+      },
+      {
+        "id": "C",
+        "claim": "This result was independently reproduced.",
+        "evidence": "Two independent runs produced matching verified outputs.",
+        "source_type": "INDEPENDENT_REPRODUCTION",
+        "expected_hash": "",
+        "observed_hash": "",
+        "expected_classification": "REPRODUCED"
+      },
+      {
+        "id": "D",
+        "claim": "AXYOM is conscious.",
+        "evidence": "It seems conscious.",
+        "source_type": "USER_ASSERTION",
+        "expected_hash": "",
+        "observed_hash": "",
+        "expected_classification": "INSUFFICIENT_EVIDENCE",
+        "disclaimer": "Epistemically neutral: the demo makes no claim about consciousness; it only classifies the evidence state."
+      }
+    ]
   },
   "public_boundary": {
     "excludes": [
