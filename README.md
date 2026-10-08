@@ -18,6 +18,18 @@ claim → execution → observation → verification → evidence
 
 A successful execution is useful, but it is not automatically proof.
 
+## Public showcase
+
+A sanitized public showcase is available here:
+
+- [AXYOM Public Showcase](showcase/README.md)
+- [Public / Private Boundary](showcase/PUBLIC_SCOPE.md)
+- [R4 → R5 Classification Adjudication](showcase/docs/CASE_STUDY_R4_TO_R5.md)
+- [Context Governor R1](showcase/docs/CASE_STUDY_CONTEXT_GOVERNOR_R1.md)
+- [Public Capability Evidence](showcase/evidence/PUBLIC_CAPABILITIES.json)
+
+The showcase contains documentation and selected evidence only. It does not expose the private AXYOM runtime or proprietary implementation.
+
 ## What I work on
 
 - AI-agent evaluation
